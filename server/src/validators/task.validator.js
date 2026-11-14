@@ -57,3 +57,12 @@ export const createCommentSchema = {
       .optional(),
   }),
 };
+
+export const moveTaskSchema = {
+  body: z.object({
+    status: z.enum(['BACKLOG', 'TODO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE']),
+    position: z.number().optional(),
+    previousTaskId: z.string().optional().nullable(),
+    nextTaskId: z.string().optional().nullable(),
+  }),
+};

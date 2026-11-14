@@ -2,12 +2,17 @@ import http from 'http';
 import app from './app.js';
 import { config } from './config/env.js';
 import { connectDB } from './config/db.js';
+import { initSocket } from './socket/index.js';
 
 const startServer = async () => {
   // Connect to Database
   await connectDB();
 
   const server = http.createServer(app);
+
+  // Initialize Authenticated Real-Time Socket.IO
+  const io = initSocket(server);
+  app.set('io', io);
 
   server.listen(config.port, () => {
     console.log(`[TeamFlow Server] Running in ${config.nodeEnv} mode on http://localhost:${config.port}`);

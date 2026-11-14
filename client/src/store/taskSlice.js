@@ -133,6 +133,24 @@ export const createComment = createAsyncThunk(
   }
 );
 
+// Move task across or within columns
+export const moveTask = createAsyncThunk(
+  'task/moveTask',
+  async ({ workspaceId, taskId, status, position, previousTaskId, nextTaskId }, { rejectWithValue }) => {
+    try {
+      const response = await api.patch(`/workspaces/${workspaceId}/tasks/${taskId}/move`, {
+        status,
+        position,
+        previousTaskId,
+        nextTaskId,
+      });
+      return response.data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to move task');
+    }
+  }
+);
+
 const taskSlice = createSlice({
   name: 'task',
   initialState: {
@@ -151,8 +169,80 @@ const taskSlice = createSlice({
     clearTaskError: (state) => {
       state.error = null;
     },
+    moveTaskOptimistic: (state, action) => {
+      const { taskId, status, position } = action.payload;
+      const task = state.tasks.find((t) => (t._id || t.id) === taskId);
+      if (task) {
+        if (status) task.status = status;
+        if (position !== undefined) task.position = position;
+      }
+    },
+    applyRealtimeTaskCreated: (state, action) => {
+      const task = action.payload?.task || action.payload;
+      const taskId = task?._id || task?.id;
+      if (taskId && !state.tasks.some((t) => (t._id || t.id) === taskId)) {
+        state.tasks.unshift(task);
+      }
+    },
+    applyRealtimeTaskUpdated: (state, action) => {
+      const task = action.payload?.task || action.payload;
+      const taskId = task?._id || task?.id;
+      if (taskId) {
+        const index = state.tasks.findIndex((t) => (t._id || t.id) === taskId);
+        if (index !== -1) {
+          state.tasks[index] = { ...state.tasks[index], ...task };
+        }
+        if (state.currentTaskDetails?.task && ((state.currentTaskDetails.task._id || state.currentTaskDetails.task.id) === taskId)) {
+          state.currentTaskDetails.task = { ...state.currentTaskDetails.task, ...task };
+        }
+      }
+    },
+    applyRealtimeTaskMoved: (state, action) => {
+      const { taskId, status, position, task } = action.payload || {};
+      const targetId = taskId || (task && (task._id || task.id));
+      const foundTask = state.tasks.find((t) => (t._id || t.id) === targetId);
+      if (foundTask) {
+        if (status) foundTask.status = status;
+        if (position !== undefined) foundTask.position = position;
+        if (task) {
+          Object.assign(foundTask, task);
+        }
+      } else if (task) {
+        state.tasks.push(task);
+      }
+    },
+    applyRealtimeTaskDeleted: (state, action) => {
+      const taskId = action.payload?.taskId || action.payload;
+      state.tasks = state.tasks.filter((t) => (t._id || t.id) !== taskId);
+      if (state.currentTaskDetails?.task && ((state.currentTaskDetails.task._id || state.currentTaskDetails.task.id) === taskId)) {
+        state.currentTaskDetails = null;
+      }
+    },
+    applyRealtimeCommentCreated: (state, action) => {
+      const { taskId, comment } = action.payload || {};
+      const targetId = taskId || comment?.task;
+      const task = state.tasks.find((t) => (t._id || t.id) === targetId);
+      if (task) {
+        task.commentCount = (task.commentCount || 0) + 1;
+      }
+      if (state.currentTaskDetails?.task && ((state.currentTaskDetails.task._id || state.currentTaskDetails.task.id) === targetId)) {
+        if (!state.currentTaskDetails.comments) {
+          state.currentTaskDetails.comments = [];
+        }
+        if (comment && !state.currentTaskDetails.comments.some((c) => (c._id || c.id) === (comment._id || comment.id))) {
+          state.currentTaskDetails.comments.push(comment);
+        }
+      }
+    },
   },
   extraReducers: (builder) => {
+    // moveTask
+    builder.addCase(moveTask.fulfilled, (state, action) => {
+      const index = state.tasks.findIndex((t) => t._id === action.payload._id);
+      if (index !== -1) {
+        state.tasks[index] = action.payload;
+      }
+    });
     // fetchTasks
     builder
       .addCase(fetchTasks.pending, (state) => {
@@ -239,5 +329,15 @@ const taskSlice = createSlice({
   },
 });
 
-export const { setCurrentTaskDetails, clearCurrentTask, clearTaskError } = taskSlice.actions;
+export const { 
+  setCurrentTaskDetails, 
+  clearCurrentTask, 
+  clearTaskError,
+  moveTaskOptimistic,
+  applyRealtimeTaskCreated,
+  applyRealtimeTaskUpdated,
+  applyRealtimeTaskMoved,
+  applyRealtimeTaskDeleted,
+  applyRealtimeCommentCreated,
+} = taskSlice.actions;
 export default taskSlice.reducer;

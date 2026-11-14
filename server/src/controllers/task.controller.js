@@ -67,6 +67,21 @@ export const updateTask = asyncHandler(async (req, res) => {
 });
 
 /**
+ * @desc    Move a task within or between status columns
+ * @route   PATCH /api/workspaces/:workspaceId/tasks/:taskId/move
+ * @access  Protected (MEMBER)
+ */
+export const moveTask = asyncHandler(async (req, res) => {
+  const updated = await TaskService.moveTask(
+    req.workspaceId,
+    req.params.taskId,
+    req.user._id,
+    req.body
+  );
+  return sendSuccess(res, updated, 'Task moved successfully');
+});
+
+/**
  * @desc    Delete a task
  * @route   DELETE /api/workspaces/:workspaceId/tasks/:taskId
  * @access  Protected (MEMBER)

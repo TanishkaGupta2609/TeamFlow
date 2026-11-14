@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { Task, Subtask, Comment, Project, Membership, ActivityLog } from '../models/index.js';
 import { ProjectService } from './project.service.js';
+import { broadcastToWorkspace } from '../socket/index.js';
 
 export class TaskService {
   /**
@@ -66,6 +67,9 @@ export class TaskService {
       entityId: task._id,
       metadata: { taskTitle: task.title, projectId, status: task.status },
     });
+
+    // Real-Time Broadcast
+    broadcastToWorkspace(workspaceId, 'task:created', task);
 
     return task;
   }
@@ -203,6 +207,78 @@ export class TaskService {
       });
     }
 
+    // Real-Time Broadcast
+    broadcastToWorkspace(workspaceId, 'task:updated', task);
+
+    return task;
+  }
+
+  /**
+   * Move task across or within Kanban status columns with a stable position strategy.
+   */
+  static async moveTask(workspaceId, taskId, actorUserId, { status, position, previousTaskId, nextTaskId }) {
+    const task = await Task.findOne({ _id: taskId, workspace: workspaceId });
+    if (!task) {
+      const error = new Error('Task not found in this workspace');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const oldStatus = task.status;
+    const statusChanged = status && status !== oldStatus;
+
+    let targetPosition = position;
+
+    // Stable position calculation if neighboring task IDs provided
+    if (targetPosition === undefined) {
+      if (previousTaskId && nextTaskId) {
+        const [prevTask, nextTask] = await Promise.all([
+          Task.findById(previousTaskId),
+          Task.findById(nextTaskId),
+        ]);
+        const p1 = prevTask?.position ?? 0;
+        const p2 = nextTask?.position ?? (p1 + 2000);
+        targetPosition = (p1 + p2) / 2;
+      } else if (previousTaskId) {
+        const prevTask = await Task.findById(previousTaskId);
+        targetPosition = (prevTask?.position ?? 0) + 1000;
+      } else if (nextTaskId) {
+        const nextTask = await Task.findById(nextTaskId);
+        targetPosition = Math.max(0, (nextTask?.position ?? 1000) / 2);
+      } else {
+        const count = await Task.countDocuments({ project: task.project, status });
+        targetPosition = (count + 1) * 1000;
+      }
+    }
+
+    if (status) task.status = status;
+    task.position = targetPosition;
+    await task.save();
+
+    // Recalculate progress if status changed
+    if (statusChanged) {
+      await ProjectService.recalculateProgress(task.project);
+    }
+
+    // Log Activity
+    await ActivityLog.create({
+      workspace: workspaceId,
+      actor: actorUserId,
+      action: 'TASK_MOVED',
+      entityType: 'TASK',
+      entityId: task._id,
+      metadata: { from: oldStatus, to: task.status, position: targetPosition, taskTitle: task.title },
+    });
+
+    // Real-Time Broadcast
+    broadcastToWorkspace(workspaceId, 'task:moved', {
+      taskId: task._id,
+      projectId: task.project,
+      status: task.status,
+      position: task.position,
+      task,
+    });
+
     return task;
   }
 
@@ -235,6 +311,9 @@ export class TaskService {
 
     // Recalculate project progress
     await ProjectService.recalculateProgress(projectId);
+
+    // Real-Time Broadcast
+    broadcastToWorkspace(workspaceId, 'task:deleted', { taskId, projectId });
 
     return { success: true };
   }
@@ -331,7 +410,12 @@ export class TaskService {
       metadata: { taskId, taskTitle: task.title },
     });
 
-    return comment.populate('author', 'name email avatar designation');
+    const populated = await comment.populate('author', 'name email avatar designation');
+
+    // Real-Time Broadcast
+    broadcastToWorkspace(workspaceId, 'comment:created', { taskId, comment: populated });
+
+    return populated;
   }
 
   /**

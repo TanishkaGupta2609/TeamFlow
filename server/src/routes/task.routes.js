@@ -5,6 +5,7 @@ import {
   getTask,
   updateTask,
   deleteTask,
+  moveTask,
   createSubtask,
   updateSubtask,
   deleteSubtask,
@@ -19,6 +20,7 @@ import {
   createSubtaskSchema,
   updateSubtaskSchema,
   createCommentSchema,
+  moveTaskSchema,
 } from '../validators/task.validator.js';
 
 const router = Router({ mergeParams: true });
@@ -35,6 +37,13 @@ router
   .get(requireWorkspaceRole('MEMBER'), getTask)
   .patch(requireWorkspaceRole('MEMBER'), validate(updateTaskSchema), updateTask)
   .delete(requireWorkspaceRole('MEMBER'), deleteTask);
+
+router.patch(
+  '/:taskId/move',
+  requireWorkspaceRole('MEMBER'),
+  validate(moveTaskSchema),
+  moveTask
+);
 
 // Subtasks
 router
