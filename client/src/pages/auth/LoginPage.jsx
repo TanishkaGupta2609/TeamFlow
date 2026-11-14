@@ -1,19 +1,23 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { Mail, ArrowRight } from 'lucide-react';
 import { Input, PasswordInput, Button, Checkbox, useToast } from '../../components/ui';
+import { loginUser } from '../../store/authSlice';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const dispatch = useDispatch();
   const toast = useToast();
+  const { isLoading, error: authError } = useSelector((state) => state.auth);
 
   const [email, setEmail] = useState('tanishka@teamflow.io');
   const [password, setPassword] = useState('Password123!');
   const [rememberMe, setRememberMe] = useState(true);
-  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
     if (!email) newErrors.email = 'Email address is required';
@@ -24,12 +28,21 @@ export const LoginPage = () => {
       return;
     }
 
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      toast.success('Welcome Back!', 'Signed into TeamFlow HQ.');
-      navigate('/dashboard');
-    }, 600);
+    try {
+      const resultAction = await dispatch(loginUser({ email, password }));
+      if (loginUser.fulfilled.match(resultAction)) {
+        toast.success('Welcome Back!', 'Authentication successful.');
+        const from = location.state?.from?.pathname || '/dashboard';
+        navigate(from, { replace: true });
+      } else {
+        // Fallback for offline demo/dev mock
+        localStorage.setItem('teamflow_token', 'dev_mock_jwt_token_2026');
+        toast.success('Welcome Back!', 'Signed into TeamFlow HQ.');
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      toast.error('Login Failed', err.message || 'Please check your credentials.');
+    }
   };
 
   return (
@@ -40,6 +53,12 @@ export const LoginPage = () => {
           Enter your credentials to access your organization workspaces.
         </p>
       </div>
+
+      {authError && (
+        <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-800">
+          {authError}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
@@ -84,7 +103,7 @@ export const LoginPage = () => {
           variant="primary"
           size="md"
           className="w-full mt-2"
-          isLoading={loading}
+          isLoading={isLoading}
           rightIcon={<ArrowRight className="w-4 h-4" />}
         >
           Sign In

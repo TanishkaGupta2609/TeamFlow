@@ -17,9 +17,9 @@ export const notFound = (req, res, next) => {
  * }
  */
 export const errorHandler = (err, req, res, next) => {
-  let statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  let statusCode = err.statusCode || (res.statusCode !== 200 ? res.statusCode : 500);
   let message = err.message || 'Internal Server Error';
-  let errors = [];
+  let errors = err.errors || [];
 
   // Mongoose Duplicate Key Error (E11000)
   if (err.code === 11000) {

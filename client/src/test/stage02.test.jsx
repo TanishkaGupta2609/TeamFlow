@@ -2,6 +2,8 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import { store } from '../store';
 import ToastProvider from '../components/ui/Toast';
 
 // Pages
@@ -18,11 +20,13 @@ import RegisterPage from '../pages/auth/RegisterPage';
 
 const renderWithProviders = (component) => {
   return render(
-    <BrowserRouter>
-      <ToastProvider>
-        {component}
-      </ToastProvider>
-    </BrowserRouter>
+    <Provider store={store}>
+      <BrowserRouter>
+        <ToastProvider>
+          {component}
+        </ToastProvider>
+      </BrowserRouter>
+    </Provider>
   );
 };
 

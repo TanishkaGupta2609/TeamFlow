@@ -5,6 +5,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import AuthLayout from '../layouts/AuthLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
+import ProtectedRoute from './ProtectedRoute';
 
 // Public & Diagnostic Pages
 import HomePage from '../pages/HomePage';
@@ -48,8 +49,14 @@ export const AppRoutes = () => {
         <Route path="/accept-invite" element={<AcceptInvitePage />} />
       </Route>
 
-      {/* 3. SaaS Dashboard Screens (DashboardLayout with Collapsible Sidebar) */}
-      <Route element={<DashboardLayout />}>
+      {/* 3. SaaS Dashboard Screens (Protected DashboardLayout with Collapsible Sidebar) */}
+      <Route
+        element={
+          <ProtectedRoute>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }
+      >
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/tasks" element={<TasksPage />} />

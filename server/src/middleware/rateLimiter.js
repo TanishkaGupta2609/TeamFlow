@@ -9,7 +9,7 @@ class MemoryRateLimiter {
     this.hits = new Map();
 
     // Periodic cleanup of expired IP records
-    setInterval(() => {
+    const interval = setInterval(() => {
       const now = Date.now();
       for (const [ip, data] of this.hits.entries()) {
         if (now - data.startTime > this.windowMs) {
@@ -17,6 +17,9 @@ class MemoryRateLimiter {
         }
       }
     }, windowMs);
+    if (interval.unref) {
+      interval.unref();
+    }
   }
 
   middleware() {
