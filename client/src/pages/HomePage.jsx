@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   CheckCircle2, 
   Server, 
@@ -7,9 +8,11 @@ import {
   ShieldCheck, 
   Layers, 
   ArrowRight,
-  RefreshCw 
+  RefreshCw,
+  Palette
 } from 'lucide-react';
 import api from '../services/api';
+import { Button } from '../components/ui/Button';
 
 export const HomePage = () => {
   const [healthData, setHealthData] = useState(null);
@@ -35,33 +38,47 @@ export const HomePage = () => {
 
   const stackItems = [
     { title: 'Frontend Core', tech: 'React 18 + Vite', desc: 'Ultra-fast HMR and optimized bundler' },
-    { title: 'Styling & Design', tech: 'Tailwind CSS + Manrope & Inter', desc: 'B2B SaaS palette (#173F35 Forest, #F7F6F2 Ivory)' },
+    { title: 'Design System', tech: 'Stage 01 UI Foundation', desc: 'Centralized tokens, buttons, inputs, feedback, and data components' },
+    { title: 'Styling & Tokens', tech: 'Tailwind CSS + Manrope & Inter', desc: 'B2B SaaS palette (#173F35 Forest, #F7F6F2 Ivory, #A9B8A5 Sage)' },
     { title: 'Routing & State', tech: 'React Router v6 + Redux Toolkit', desc: 'Predictable state and client-side routing' },
     { title: 'Backend API', tech: 'Node.js + Express', desc: 'Modular architecture, JSON parsing, security headers' },
     { title: 'Database', tech: 'MongoDB + Mongoose', desc: 'Enterprise data modeling and persistence' },
-    { title: 'API Client', tech: 'Axios Service', desc: 'Configured with interceptors and base endpoints' },
   ];
 
   return (
     <div className="space-y-8">
       {/* Hero Section */}
-      <section className="bg-white rounded-xl border border-border p-6 sm:p-10 shadow-sm">
-        <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-forest/5 text-forest text-xs font-semibold mb-4 border border-forest/10">
-            <span className="w-2 h-2 rounded-full bg-amber-accent"></span>
-            Stage 00 Initialized &amp; Verified
+      <section className="bg-white rounded-xl border border-border p-6 sm:p-10 shadow-card">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-forest/5 text-forest text-xs font-semibold mb-4 border border-forest/10">
+              <span className="w-2 h-2 rounded-full bg-amber-accent"></span>
+              Stage 01 Design System &amp; UI Foundation Completed
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-heading font-extrabold text-charcoal tracking-tight">
+              TeamFlow SaaS Platform
+            </h1>
+            <p className="mt-3 text-base sm:text-lg text-charcoal-secondary font-sans leading-relaxed">
+              Plan clearly. Work together. Deliver better. A production-grade project management application built with the MERN stack.
+            </p>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-heading font-extrabold text-charcoal tracking-tight">
-            TeamFlow SaaS Foundation
-          </h1>
-          <p className="mt-3 text-base sm:text-lg text-charcoal-secondary font-sans leading-relaxed">
-            Plan clearly. Work together. Deliver better. A production-grade project management application built with the MERN stack.
-          </p>
+          <div className="shrink-0 flex flex-col sm:flex-row gap-3">
+            <Link to="/design-system">
+              <Button variant="primary" size="md" leftIcon={<Palette className="w-4 h-4" />} rightIcon={<ArrowRight className="w-4 h-4" />}>
+                Explore Design System
+              </Button>
+            </Link>
+            <Link to="/status">
+              <Button variant="outline" size="md">
+                System Status
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* Live System Connectivity Card */}
-      <section className="bg-white rounded-xl border border-border p-6 shadow-sm">
+      <section className="bg-white rounded-xl border border-border p-6 shadow-card">
         <div className="flex items-center justify-between pb-4 border-b border-border">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-forest/10 text-forest flex items-center justify-center">
@@ -133,9 +150,9 @@ export const HomePage = () => {
       </section>
 
       {/* Architectural Overview */}
-      <section className="bg-white rounded-xl border border-border p-6 shadow-sm">
+      <section className="bg-white rounded-xl border border-border p-6 shadow-card">
         <h2 className="font-heading font-bold text-xl text-charcoal mb-4">
-          Architectural Baseline (Stage 00)
+          Architectural Baseline &amp; UI System
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {stackItems.map((item, idx) => (

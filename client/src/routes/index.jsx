@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import HomePage from '../pages/HomePage';
 import StatusPage from '../pages/StatusPage';
+import DesignSystemPage from '../pages/DesignSystemPage';
 import NotFoundPage from '../pages/NotFoundPage';
 
 export const AppRoutes = () => {
@@ -10,6 +11,7 @@ export const AppRoutes = () => {
     <Routes>
       <Route path="/" element={<MainLayout />}>
         <Route index element={<HomePage />} />
+        <Route path="design-system" element={<DesignSystemPage />} />
         <Route path="status" element={<StatusPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>

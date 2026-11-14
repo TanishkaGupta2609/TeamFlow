@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Layers, Activity, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Layers, Activity, CheckCircle2, AlertCircle, Palette } from 'lucide-react';
 import api from '../../services/api';
 
 export const Navbar = () => {
@@ -39,6 +39,7 @@ export const Navbar = () => {
 
   const navLinks = [
     { name: 'Overview', path: '/' },
+    { name: 'Design System', path: '/design-system' },
     { name: 'System Status', path: '/status' },
   ];
 
@@ -115,3 +116,5 @@ export const Navbar = () => {
     </header>
   );
 };
+
+export default Navbar;

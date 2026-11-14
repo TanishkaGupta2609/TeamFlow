@@ -9,9 +9,9 @@ describe('App Component', () => {
     expect(screen.getAllByText(/Plan clearly. Work together. Deliver better./i).length).toBeGreaterThan(0);
   });
 
-  it('renders Stage 00 badge and architectural sections', () => {
+  it('renders design system and architectural sections', () => {
     render(<App />);
-    expect(screen.getByText(/Stage 00 Initialized & Verified/i)).toBeInTheDocument();
+    expect(screen.getByText(/Stage 01 Design System/i)).toBeInTheDocument();
     expect(screen.getByText(/Frontend Core/i)).toBeInTheDocument();
   });
 });
