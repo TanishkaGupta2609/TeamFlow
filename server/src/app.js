@@ -5,7 +5,9 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import { config, validateEnv } from './config/env.js';
 import healthRoutes from './routes/health.routes.js';
+import workspaceRoutes from './routes/workspace.routes.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
+import { rateLimiter } from './middleware/rateLimiter.js';
 
 // Validate environment
 validateEnv();
@@ -14,6 +16,9 @@ const app = express();
 
 // Security Headers
 app.use(helmet());
+
+// Rate Limiting (100 requests per 15 mins)
+app.use(rateLimiter(15 * 60 * 1000, 100));
 
 // CORS Configuration with explicit frontend origin
 app.use(
@@ -52,6 +57,7 @@ if (config.nodeEnv !== 'test') {
 
 // API Routes
 app.use('/api/health', healthRoutes);
+app.use('/api/workspaces', workspaceRoutes);
 
 // Root route
 app.get('/', (req, res) => {
@@ -64,7 +70,7 @@ app.get('/', (req, res) => {
   });
 });
 
-// Error Handling
+// Centralized Error Handling
 app.use(notFound);
 app.use(errorHandler);
 
