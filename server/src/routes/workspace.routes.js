@@ -26,6 +26,8 @@ import {
   updateMemberRoleSchema,
   updateMemberStatusSchema,
 } from '../validators/workspace.validator.js';
+import projectRoutes from './project.routes.js';
+import taskRoutes from './task.routes.js';
 
 const router = Router();
 
@@ -107,5 +109,11 @@ router.delete(
   requireWorkspaceRole('MANAGER'),
   revokeInvitation
 );
+
+// ==========================================
+// 6. Projects & Tasks Sub-Routes
+// ==========================================
+router.use('/:workspaceId/projects', projectRoutes);
+router.use('/:workspaceId/tasks', taskRoutes);
 
 export default router;

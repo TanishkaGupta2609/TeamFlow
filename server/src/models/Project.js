@@ -34,15 +34,26 @@ const projectSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['PLANNING', 'ACTIVE', 'IN_PROGRESS', 'REVIEW', 'COMPLETED', 'ARCHIVED'],
+      enum: ['PLANNING', 'ACTIVE', 'ON_HOLD', 'IN_PROGRESS', 'REVIEW', 'COMPLETED', 'ARCHIVED'],
       default: 'PLANNING',
       index: true,
     },
     priority: {
       type: String,
-      enum: ['LOW', 'MEDIUM', 'HIGH', 'URGENT'],
+      enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL', 'URGENT'],
       default: 'MEDIUM',
       index: true,
+    },
+    manager: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    progress: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
     },
     owner: {
       type: mongoose.Schema.Types.ObjectId,
