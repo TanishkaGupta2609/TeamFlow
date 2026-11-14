@@ -17,6 +17,8 @@ import uploadRoutes from './routes/upload.routes.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 import { rateLimiter } from './middleware/rateLimiter.js';
 import { sanitizeNoSql } from './middleware/sanitize.middleware.js';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger.js';
 
 // Validate environment
 validateEnv();
@@ -69,6 +71,7 @@ if (config.nodeEnv !== 'test') {
 app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
 
 // API Routes
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/workspaces', workspaceRoutes);
