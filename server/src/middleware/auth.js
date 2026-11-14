@@ -1,5 +1,6 @@
+import mongoose from 'mongoose';
 import { verifyAccessToken } from '../utils/token.js';
-import { User, Membership } from '../models/index.js';
+import { User, Membership, Workspace } from '../models/index.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
 const ROLE_HIERARCHY = {
@@ -94,8 +95,21 @@ export const requireWorkspaceRole = (minRole = 'MEMBER') =>
       });
     }
 
+    let targetWorkspaceId = workspaceId;
+    if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
+      const ws = await Workspace.findOne({ slug: workspaceId });
+      if (!ws) {
+        return res.status(404).json({
+          success: false,
+          message: `Workspace '${workspaceId}' not found`,
+          errors: [{ field: 'workspaceId', message: 'Workspace does not exist' }],
+        });
+      }
+      targetWorkspaceId = ws._id;
+    }
+
     const membership = await Membership.findOne({
-      workspace: workspaceId,
+      workspace: targetWorkspaceId,
       user: req.user._id,
       status: 'ACTIVE',
     });
@@ -120,6 +134,6 @@ export const requireWorkspaceRole = (minRole = 'MEMBER') =>
     }
 
     req.membership = membership;
-    req.workspaceId = workspaceId;
+    req.workspaceId = targetWorkspaceId;
     next();
   });

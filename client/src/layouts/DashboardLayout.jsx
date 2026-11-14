@@ -1,5 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { 
+  fetchWorkspaces, 
+  createWorkspace, 
+  setCurrentWorkspace 
+} from '../store/workspaceSlice';
 import { 
   LayoutDashboard, 
   FolderKanban, 
@@ -44,15 +50,46 @@ import {
 export const DashboardLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const toast = useToast();
+
+  const { currentWorkspace, workspaces } = useSelector((state) => state.workspace);
+  const activeWorkspace = currentWorkspace || mockWorkspaces[0];
 
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [activeWorkspace, setActiveWorkspace] = useState(mockWorkspaces[0]);
   const [newProjectModal, setNewProjectModal] = useState(false);
+  const [createWorkspaceModal, setCreateWorkspaceModal] = useState(false);
+  const [newWorkspaceName, setNewWorkspaceName] = useState('');
+  const [newWorkspaceDesc, setNewWorkspaceDesc] = useState('');
   const [unreadNotifs, setUnreadNotifs] = useState(mockNotifications.filter((n) => !n.read).length);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [globalSearchTerm, setGlobalSearchTerm] = useState('');
+
+  useEffect(() => {
+    dispatch(fetchWorkspaces());
+  }, [dispatch]);
+
+  const handleCreateWorkspace = async (e) => {
+    e.preventDefault();
+    if (!newWorkspaceName.trim()) return;
+
+    try {
+      const resultAction = await dispatch(
+        createWorkspace({ name: newWorkspaceName, description: newWorkspaceDesc })
+      );
+      if (createWorkspace.fulfilled.match(resultAction)) {
+        toast.success('Workspace Created', `Successfully created ${newWorkspaceName}`);
+        setCreateWorkspaceModal(false);
+        setNewWorkspaceName('');
+        setNewWorkspaceDesc('');
+      } else {
+        toast.error('Creation Failed', resultAction.payload || 'Unable to create workspace');
+      }
+    } catch (err) {
+      toast.error('Error', err.message);
+    }
+  };
 
   // Nav links structure
   const workspaceLinks = [
@@ -166,14 +203,29 @@ export const DashboardLayout = () => {
                         <ChevronDown className="w-3.5 h-3.5 text-charcoal-secondary shrink-0" />
                       </button>
                     }
-                    items={mockWorkspaces.map((ws) => ({
-                      label: ws.name,
-                      badge: ws.role,
-                      onClick: () => {
-                        setActiveWorkspace(ws);
-                        toast.info('Switched Workspace', `Active workspace set to ${ws.name}`);
+                    items={[
+                      ...(workspaces && workspaces.length > 0
+                        ? workspaces.map((w) => ({
+                            label: w.workspace.name,
+                            badge: w.role,
+                            onClick: () => {
+                              dispatch(setCurrentWorkspace(w.workspace));
+                              toast.info('Switched Workspace', `Active workspace set to ${w.workspace.name}`);
+                            },
+                          }))
+                        : mockWorkspaces.map((ws) => ({
+                            label: ws.name,
+                            badge: ws.role,
+                            onClick: () => {
+                              dispatch(setCurrentWorkspace(ws));
+                              toast.info('Switched Workspace', `Active workspace set to ${ws.name}`);
+                            },
+                          }))),
+                      {
+                        label: '+ Create Workspace',
+                        onClick: () => setCreateWorkspaceModal(true),
                       },
-                    }))}
+                    ]}
                   />
                 </div>
               )}
@@ -450,6 +502,44 @@ export const DashboardLayout = () => {
             defaultValue="medium"
           />
           <Textarea id="p-desc" label="Project Description" rows={3} placeholder="Describe the objectives and scope..." />
+        </form>
+      </Modal>
+
+      {/* Modal: Create Workspace */}
+      <Modal
+        isOpen={createWorkspaceModal}
+        onClose={() => setCreateWorkspaceModal(false)}
+        title="Create Organization Workspace"
+        description="Establish a new workspace for your company or team projects"
+        footer={
+          <>
+            <Button variant="outline" size="sm" onClick={() => setCreateWorkspaceModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" size="sm" onClick={handleCreateWorkspace}>
+              Create Workspace
+            </Button>
+          </>
+        }
+      >
+        <form onSubmit={handleCreateWorkspace} className="space-y-4">
+          <Input
+            id="ws-create-name"
+            label="Workspace Name"
+            placeholder="e.g. Acme Innovations"
+            value={newWorkspaceName}
+            onChange={(e) => setNewWorkspaceName(e.target.value)}
+            required
+            autoFocus
+          />
+          <Textarea
+            id="ws-create-desc"
+            label="Description (Optional)"
+            rows={3}
+            placeholder="What does this organization or department work on?"
+            value={newWorkspaceDesc}
+            onChange={(e) => setNewWorkspaceDesc(e.target.value)}
+          />
         </form>
       </Modal>
 

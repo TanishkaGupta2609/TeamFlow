@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateWorkspace } from '../store/workspaceSlice';
 import { 
   User, 
   Building, 
@@ -28,6 +30,9 @@ import {
 
 export const SettingsPage = () => {
   const toast = useToast();
+  const dispatch = useDispatch();
+  const { currentWorkspace } = useSelector((state) => state.workspace);
+
   const [activeTab, setActiveTab] = useState('profile');
   const [deleteDialog, setDeleteDialog] = useState(false);
 
@@ -38,9 +43,17 @@ export const SettingsPage = () => {
   const [profileBio, setProfileBio] = useState('Lead Product Architect focusing on B2B SaaS interfaces and high-performance design systems.');
 
   // Workspace Settings State
-  const [wsName, setWsName] = useState(mockWorkspaces[0].name);
-  const [wsSlug, setWsSlug] = useState(mockWorkspaces[0].slug);
-  const [wsDesc, setWsDesc] = useState(mockWorkspaces[0].description);
+  const [wsName, setWsName] = useState(currentWorkspace?.name || mockWorkspaces[0].name);
+  const [wsSlug, setWsSlug] = useState(currentWorkspace?.slug || mockWorkspaces[0].slug);
+  const [wsDesc, setWsDesc] = useState(currentWorkspace?.description || mockWorkspaces[0].description);
+
+  useEffect(() => {
+    if (currentWorkspace) {
+      setWsName(currentWorkspace.name || '');
+      setWsSlug(currentWorkspace.slug || '');
+      setWsDesc(currentWorkspace.description || '');
+    }
+  }, [currentWorkspace]);
 
   // Notification Preferences
   const [emailAlerts, setEmailAlerts] = useState(true);
@@ -58,8 +71,23 @@ export const SettingsPage = () => {
     toast.success('Profile Saved', 'Your user account details were updated.');
   };
 
-  const handleSaveWorkspace = (e) => {
+  const handleSaveWorkspace = async (e) => {
     e.preventDefault();
+    if (currentWorkspace?._id) {
+      try {
+        await dispatch(
+          updateWorkspace({
+            workspaceId: currentWorkspace._id,
+            data: { name: wsName, description: wsDesc },
+          })
+        );
+        toast.success('Workspace Updated', 'Workspace configuration saved successfully.');
+        return;
+      } catch (err) {
+        toast.error('Failed to Update', err.message);
+        return;
+      }
+    }
     toast.success('Workspace Updated', 'Workspace configuration saved successfully.');
   };
 
