@@ -31,6 +31,8 @@ const commentSchema = new mongoose.Schema(
         name: String,
         url: String,
         size: Number,
+        publicId: String,
+        mimeType: String,
       },
     ],
   },

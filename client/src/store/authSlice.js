@@ -60,6 +60,20 @@ export const logoutUser = createAsyncThunk(
   }
 );
 
+export const uploadAvatar = createAsyncThunk(
+  'auth/uploadAvatar',
+  async (formData, { rejectWithValue }) => {
+    try {
+      const response = await api.post('/upload/avatar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to upload avatar');
+    }
+  }
+);
+
 const initialToken = localStorage.getItem('teamflow_token') || null;
 
 const authSlice = createSlice({
@@ -143,6 +157,13 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.isLoading = false;
       state.error = null;
+    });
+
+    // Upload Avatar
+    builder.addCase(uploadAvatar.fulfilled, (state, action) => {
+      if (state.user) {
+        state.user.avatar = action.payload.avatarUrl || action.payload.user?.avatar;
+      }
     });
   },
 });

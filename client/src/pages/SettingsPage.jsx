@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateWorkspace } from '../store/workspaceSlice';
+import { updateWorkspace, uploadWorkspaceLogo } from '../store/workspaceSlice';
+import { uploadAvatar } from '../store/authSlice';
 import { 
   User, 
   Building, 
@@ -11,7 +12,8 @@ import {
   AlertTriangle, 
   Lock, 
   Smartphone,
-  CheckCircle2
+  CheckCircle2,
+  UploadCloud
 } from 'lucide-react';
 import { mockCurrentUser, mockWorkspaces } from '../services/mockData';
 import { 
@@ -31,10 +33,16 @@ import {
 export const SettingsPage = () => {
   const toast = useToast();
   const dispatch = useDispatch();
+  const avatarInputRef = useRef(null);
+  const logoInputRef = useRef(null);
+
   const { currentWorkspace } = useSelector((state) => state.workspace);
+  const { user: authUser } = useSelector((state) => state.auth);
 
   const [activeTab, setActiveTab] = useState('profile');
   const [deleteDialog, setDeleteDialog] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   // Profile Form State
   const [profileName, setProfileName] = useState(mockCurrentUser.name);
@@ -48,12 +56,60 @@ export const SettingsPage = () => {
   const [wsDesc, setWsDesc] = useState(currentWorkspace?.description || mockWorkspaces[0].description);
 
   useEffect(() => {
+    if (authUser) {
+      setProfileName(authUser.name || mockCurrentUser.name);
+      setProfileEmail(authUser.email || mockCurrentUser.email);
+      if (authUser.designation) setProfileTitle(authUser.designation);
+    }
+  }, [authUser]);
+
+  useEffect(() => {
     if (currentWorkspace) {
       setWsName(currentWorkspace.name || '');
       setWsSlug(currentWorkspace.slug || '');
       setWsDesc(currentWorkspace.description || '');
     }
   }, [currentWorkspace]);
+
+  // Handlers for file uploads
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    setIsUploadingAvatar(true);
+    try {
+      await dispatch(uploadAvatar(formData)).unwrap();
+      toast.success('Avatar Updated', 'Profile photo updated successfully.');
+    } catch (err) {
+      toast.error('Avatar Upload Failed', err);
+    } finally {
+      setIsUploadingAvatar(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = '';
+    }
+  };
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    const wsId = currentWorkspace?._id || currentWorkspace?.id;
+    if (!file || !wsId) return;
+
+    const formData = new FormData();
+    formData.append('logo', file);
+
+    setIsUploadingLogo(true);
+    try {
+      await dispatch(uploadWorkspaceLogo({ workspaceId: wsId, formData })).unwrap();
+      toast.success('Logo Updated', 'Workspace logo updated successfully.');
+    } catch (err) {
+      toast.error('Logo Upload Failed', err);
+    } finally {
+      setIsUploadingLogo(false);
+      if (logoInputRef.current) logoInputRef.current.value = '';
+    }
+  };
 
   // Notification Preferences
   const [emailAlerts, setEmailAlerts] = useState(true);
@@ -126,14 +182,28 @@ export const SettingsPage = () => {
       {activeTab === 'profile' && (
         <form onSubmit={handleSaveProfile} className="bg-white rounded-xl border border-border p-6 shadow-card space-y-6">
           <div className="flex items-center gap-5 pb-6 border-b border-border">
-            <Avatar name={profileName} size="xl" status="online" />
+            <Avatar name={profileName} src={authUser?.avatar} size="xl" status="online" />
             <div className="space-y-1.5">
               <h3 className="font-heading font-bold text-sm text-charcoal">Profile Photo</h3>
               <p className="text-xs text-charcoal-secondary">
-                Calculated dynamically from initials or connected Gravatar account.
+                Upload a personalized avatar image (JPG, PNG, WebP up to 10MB).
               </p>
-              <Button variant="outline" size="sm" onClick={() => toast.info('Avatar Simulation', 'Avatar image picker activated.')}>
-                Change Photo
+              <input
+                type="file"
+                ref={avatarInputRef}
+                accept="image/*"
+                className="hidden"
+                data-testid="avatar-file-input"
+                onChange={handleAvatarUpload}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                isLoading={isUploadingAvatar}
+                onClick={() => avatarInputRef.current?.click()}
+              >
+                {isUploadingAvatar ? 'Uploading...' : 'Change Photo'}
               </Button>
             </div>
           </div>
@@ -190,6 +260,39 @@ export const SettingsPage = () => {
               <p className="text-xs text-charcoal-secondary mt-0.5">
                 Organization details visible to all workspace collaborators.
               </p>
+            </div>
+
+            <div className="flex items-center gap-5 pb-4 border-b border-border">
+              <div className="w-16 h-16 rounded-xl bg-forest/10 border border-border flex items-center justify-center overflow-hidden shrink-0">
+                {currentWorkspace?.logo ? (
+                  <img src={currentWorkspace.logo} alt="Workspace Logo" className="w-full h-full object-cover" />
+                ) : (
+                  <Building className="w-8 h-8 text-forest" />
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <h4 className="font-heading font-bold text-sm text-charcoal">Workspace Logo</h4>
+                <p className="text-xs text-charcoal-secondary">
+                  Custom organization branding displayed in the navigation sidebar.
+                </p>
+                <input
+                  type="file"
+                  ref={logoInputRef}
+                  accept="image/*"
+                  className="hidden"
+                  data-testid="workspace-logo-input"
+                  onChange={handleLogoUpload}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  isLoading={isUploadingLogo}
+                  onClick={() => logoInputRef.current?.click()}
+                >
+                  {isUploadingLogo ? 'Uploading...' : 'Upload Logo'}
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-4">

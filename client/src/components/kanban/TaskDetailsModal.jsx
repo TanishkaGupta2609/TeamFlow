@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
   CheckSquare, 
@@ -11,7 +11,10 @@ import {
   Paperclip, 
   History, 
   MessageSquare,
-  AlertCircle
+  AlertCircle,
+  Download,
+  FileText,
+  UploadCloud
 } from 'lucide-react';
 import { 
   Modal, 
@@ -31,18 +34,22 @@ import {
   deleteSubtask, 
   createComment, 
   updateTask,
-  deleteTask 
+  deleteTask,
+  uploadTaskAttachments,
+  deleteTaskAttachment
 } from '../../store/taskSlice';
 
 export const TaskDetailsModal = ({ isOpen, onClose, task, workspaceId }) => {
   const dispatch = useDispatch();
   const toast = useToast();
+  const fileInputRef = useRef(null);
   const { currentTaskDetails, isLoading } = useSelector((state) => state.task);
 
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [newCommentContent, setNewCommentContent] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
-  const [activeTab, setActiveTab] = useState('subtasks'); // 'subtasks' | 'comments' | 'history'
+  const [isUploading, setIsUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState('subtasks'); // 'subtasks' | 'comments' | 'attachments' | 'history'
 
   const taskId = task?._id || task?.id;
 
@@ -56,6 +63,46 @@ export const TaskDetailsModal = ({ isOpen, onClose, task, workspaceId }) => {
   const subtasks = currentTaskDetails?.subtasks || activeTask?.subtasks || [];
   const comments = currentTaskDetails?.comments || activeTask?.comments || [];
   const history = currentTaskDetails?.history || [];
+  const attachments = currentTaskDetails?.task?.attachments || activeTask?.attachments || [];
+
+  const handleFileUpload = async (e) => {
+    const files = e.target.files;
+    if (!files || files.length === 0 || !workspaceId || !taskId) return;
+
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      formData.append('files', files[i]);
+    }
+
+    setIsUploading(true);
+    try {
+      await dispatch(uploadTaskAttachments({ workspaceId, taskId, formData })).unwrap();
+      toast.success('Files Uploaded', 'Attachments have been uploaded successfully.');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    } catch (err) {
+      toast.error('Upload Failed', err);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeleteAttachment = async (attachmentId) => {
+    if (!workspaceId || !taskId) return;
+    try {
+      await dispatch(deleteTaskAttachment({ workspaceId, taskId, attachmentId })).unwrap();
+      toast.info('Attachment Removed');
+    } catch (err) {
+      toast.error('Failed to remove attachment', err);
+    }
+  };
+
+  const formatFileSize = (bytes) => {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+  };
 
   const handleStatusChange = async (e) => {
     const newStatus = e.target.value;
@@ -295,6 +342,19 @@ export const TaskDetailsModal = ({ isOpen, onClose, task, workspaceId }) => {
 
             <button
               type="button"
+              onClick={() => setActiveTab('attachments')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+                activeTab === 'attachments'
+                  ? 'bg-forest text-white'
+                  : 'text-charcoal-secondary hover:text-charcoal hover:bg-ivory'
+              }`}
+            >
+              <Paperclip className="w-3.5 h-3.5" />
+              Attachments ({attachments.length})
+            </button>
+
+            <button
+              type="button"
               onClick={() => setActiveTab('history')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
                 activeTab === 'history'
@@ -433,6 +493,120 @@ export const TaskDetailsModal = ({ isOpen, onClose, task, workspaceId }) => {
                       </p>
                     </div>
                   ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Attachments Tab */}
+          {activeTab === 'attachments' && (
+            <div className="space-y-4">
+              {/* Upload Box */}
+              <div className="border-2 border-dashed border-border rounded-xl p-4 bg-ivory/30 text-center hover:bg-ivory/50 transition-colors">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                  multiple
+                  className="hidden"
+                  id="task-file-upload-input"
+                  data-testid="task-file-upload-input"
+                />
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <div className="w-10 h-10 rounded-full bg-forest/10 flex items-center justify-center text-forest">
+                    <UploadCloud className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-charcoal">
+                      Upload task files and documents
+                    </p>
+                    <p className="text-[11px] text-charcoal-secondary mt-0.5">
+                      PNG, JPG, PDF, DOCX, CSV up to 10MB per file
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    isLoading={isUploading}
+                    onClick={() => fileInputRef.current?.click()}
+                    leftIcon={<Paperclip className="w-3.5 h-3.5" />}
+                  >
+                    {isUploading ? 'Uploading...' : 'Choose Files'}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Attachments List */}
+              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                {attachments.length === 0 ? (
+                  <p className="text-xs text-charcoal-secondary/60 text-center py-4">
+                    No attachments added yet. Upload files to share specs, mockups, or documents.
+                  </p>
+                ) : (
+                  attachments.map((att) => {
+                    const isImg = att.mimeType?.startsWith('image/') || att.url?.match(/\.(jpeg|jpg|gif|png|webp)$/i);
+                    return (
+                      <div
+                        key={att._id || att.id || att.publicId}
+                        className="flex items-center justify-between p-2.5 bg-white rounded-lg border border-border hover:shadow-xs transition-shadow group"
+                      >
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          {isImg ? (
+                            <div className="w-9 h-9 rounded bg-forest/5 border border-border overflow-hidden shrink-0 flex items-center justify-center">
+                              <img src={att.url} alt={att.name} className="w-full h-full object-cover" />
+                            </div>
+                          ) : (
+                            <div className="w-9 h-9 rounded bg-sage/10 border border-border shrink-0 flex items-center justify-center text-forest">
+                              <FileText className="w-5 h-5" />
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <a
+                              href={att.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-xs font-semibold text-charcoal hover:text-forest truncate block hover:underline"
+                              title={att.name}
+                            >
+                              {att.name}
+                            </a>
+                            <div className="flex items-center gap-2 text-[10px] text-charcoal-secondary mt-0.5">
+                              <span>{formatFileSize(att.size)}</span>
+                              <span>&bull;</span>
+                              <span>
+                                {att.createdAt
+                                  ? new Date(att.createdAt).toLocaleDateString()
+                                  : 'Uploaded'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1 shrink-0 ml-2">
+                          <a
+                            href={att.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            download
+                            className="p-1.5 text-charcoal-secondary hover:text-forest transition-colors rounded hover:bg-ivory"
+                            title="Download / View"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteAttachment(att._id || att.id)}
+                            className="p-1.5 text-charcoal-secondary hover:text-danger transition-colors rounded hover:bg-status-danger/10"
+                            title="Remove attachment"
+                            data-testid={`delete-attachment-${att._id || att.id}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
                 )}
               </div>
             </div>

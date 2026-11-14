@@ -128,6 +128,21 @@ export const acceptInvitation = createAsyncThunk(
   }
 );
 
+// Upload workspace logo
+export const uploadWorkspaceLogo = createAsyncThunk(
+  'workspace/uploadWorkspaceLogo',
+  async ({ workspaceId, formData }, { rejectWithValue }) => {
+    try {
+      const response = await api.post(`/upload/workspace/${workspaceId}/logo`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to upload workspace logo');
+    }
+  }
+);
+
 const savedWorkspaceId = typeof window !== 'undefined'
   ? localStorage.getItem('teamflow_active_workspace_id')
   : null;
@@ -225,6 +240,21 @@ const workspaceSlice = createSlice({
     builder
       .addCase(fetchInvitations.fulfilled, (state, action) => {
         state.invitations = action.payload;
+      });
+
+    // uploadWorkspaceLogo
+    builder
+      .addCase(uploadWorkspaceLogo.fulfilled, (state, action) => {
+        const logoUrl = action.payload.logoUrl || action.payload.workspace?.logo;
+        if (state.currentWorkspace) {
+          state.currentWorkspace.logo = logoUrl;
+        }
+        const wsEntry = state.workspaces.find(
+          (w) => (w.workspace?._id || w.workspace?.id) === (state.currentWorkspace?._id || state.currentWorkspace?.id)
+        );
+        if (wsEntry && wsEntry.workspace) {
+          wsEntry.workspace.logo = logoUrl;
+        }
       });
   },
 });

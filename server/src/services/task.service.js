@@ -3,6 +3,7 @@ import { Task, Subtask, Comment, Project, Membership, ActivityLog } from '../mod
 import { ProjectService } from './project.service.js';
 import { broadcastToWorkspace } from '../socket/index.js';
 import { NotificationService } from './notification.service.js';
+import { CloudinaryService } from './cloudinary.service.js';
 
 export class TaskService {
   /**
@@ -491,6 +492,93 @@ export class TaskService {
       .populate('author', 'name email avatar designation');
 
     return comments;
+  }
+
+  /**
+   * Upload and attach files to a task.
+   */
+  static async addAttachments(workspaceId, taskId, actorUserId, files = []) {
+    const task = await Task.findOne({ _id: taskId, workspace: workspaceId });
+    if (!task) {
+      const error = new Error('Task not found in this workspace');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (!files || files.length === 0) {
+      const error = new Error('No files provided for attachment');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const uploadedAttachments = [];
+    for (const file of files) {
+      const uploadResult = await CloudinaryService.uploadBuffer(file.buffer, {
+        folder: `teamflow/tasks/${taskId}`,
+        filename: file.originalname,
+        mimetype: file.mimetype,
+      });
+
+      uploadedAttachments.push({
+        name: file.originalname,
+        url: uploadResult.url,
+        size: uploadResult.size,
+        mimeType: uploadResult.mimetype,
+        publicId: uploadResult.publicId,
+        uploadedBy: actorUserId,
+        uploadedAt: new Date(),
+      });
+    }
+
+    task.attachments.push(...uploadedAttachments);
+    await task.save();
+
+    await ActivityLog.create({
+      workspace: workspaceId,
+      actor: actorUserId,
+      action: 'TASK_UPDATED',
+      entityType: 'TASK',
+      entityId: task._id,
+      metadata: { action: 'ATTACHMENTS_ADDED', count: uploadedAttachments.length },
+    });
+
+    broadcastToWorkspace(workspaceId, 'task:updated', task);
+
+    return task.attachments;
+  }
+
+  /**
+   * Remove an attachment from a task.
+   */
+  static async deleteAttachment(workspaceId, taskId, attachmentId, actorUserId) {
+    const task = await Task.findOne({ _id: taskId, workspace: workspaceId });
+    if (!task) {
+      const error = new Error('Task not found in this workspace');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const attachment = task.attachments.id(attachmentId);
+    if (!attachment) {
+      const error = new Error('Attachment not found');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    // Cleanup from Cloudinary
+    if (attachment.publicId) {
+      await CloudinaryService.deleteResource(
+        attachment.publicId,
+        attachment.mimeType?.startsWith('image/') ? 'image' : 'raw'
+      );
+    }
+
+    task.attachments.pull(attachmentId);
+    await task.save();
+
+    broadcastToWorkspace(workspaceId, 'task:updated', task);
+
+    return { success: true };
   }
 }
 

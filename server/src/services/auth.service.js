@@ -1,5 +1,7 @@
 import crypto from 'crypto';
 import { User, Workspace, Membership, RefreshSession } from '../models/index.js';
+import { EmailService } from './email.service.js';
+import { config } from '../config/env.js';
 import {
   hashPassword,
   comparePassword,
@@ -67,6 +69,12 @@ export class AuthService {
       userAgent,
       ipAddress,
     });
+
+    // Send welcome email asynchronously
+    EmailService.sendWelcomeEmail({
+      to: user.email,
+      name: user.name,
+    }).catch((err) => console.warn('[AuthService] Welcome email failed:', err.message));
 
     return {
       user: user.toJSON(),
@@ -228,6 +236,13 @@ export class AuthService {
     user.passwordResetToken = resetTokenHash;
     user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
     await user.save();
+
+    // Send reset email asynchronously
+    EmailService.sendPasswordResetEmail({
+      to: user.email,
+      name: user.name,
+      resetUrl: `${config.clientUrl}/reset-password?token=${resetToken}`,
+    }).catch((err) => console.warn('[AuthService] Password reset email failed:', err.message));
 
     return {
       success: true,

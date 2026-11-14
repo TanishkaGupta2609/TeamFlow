@@ -70,6 +70,11 @@ const taskSchema = new mongoose.Schema(
         url: String,
         size: Number,
         mimeType: String,
+        publicId: String,
+        uploadedBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+        },
         uploadedAt: {
           type: Date,
           default: Date.now,

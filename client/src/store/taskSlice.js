@@ -151,6 +151,38 @@ export const moveTask = createAsyncThunk(
   }
 );
 
+// Upload attachments to a task
+export const uploadTaskAttachments = createAsyncThunk(
+  'task/uploadTaskAttachments',
+  async ({ workspaceId, taskId, formData }, { rejectWithValue }) => {
+    try {
+      const response = await api.post(
+        `/workspaces/${workspaceId}/tasks/${taskId}/attachments`,
+        formData,
+        {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        }
+      );
+      return response.data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to upload attachments');
+    }
+  }
+);
+
+// Delete attachment from a task
+export const deleteTaskAttachment = createAsyncThunk(
+  'task/deleteTaskAttachment',
+  async ({ workspaceId, taskId, attachmentId }, { rejectWithValue }) => {
+    try {
+      await api.delete(`/workspaces/${workspaceId}/tasks/${taskId}/attachments/${attachmentId}`);
+      return attachmentId;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to remove attachment');
+    }
+  }
+);
+
 const taskSlice = createSlice({
   name: 'task',
   initialState: {
@@ -326,6 +358,32 @@ const taskSlice = createSlice({
           state.currentTaskDetails.comments.push(action.payload);
         }
       });
+
+    // uploadTaskAttachments
+    builder.addCase(uploadTaskAttachments.fulfilled, (state, action) => {
+      if (state.currentTaskDetails?.task) {
+        state.currentTaskDetails.task.attachments = action.payload;
+      }
+      const task = state.tasks.find((t) => (t._id || t.id) === state.currentTaskDetails?.task?._id);
+      if (task) {
+        task.attachmentCount = action.payload.length;
+        task.attachments = action.payload;
+      }
+    });
+
+    // deleteTaskAttachment
+    builder.addCase(deleteTaskAttachment.fulfilled, (state, action) => {
+      if (state.currentTaskDetails?.task?.attachments) {
+        state.currentTaskDetails.task.attachments = state.currentTaskDetails.task.attachments.filter(
+          (a) => a._id !== action.payload
+        );
+      }
+      const task = state.tasks.find((t) => (t._id || t.id) === state.currentTaskDetails?.task?._id);
+      if (task && task.attachments) {
+        task.attachments = task.attachments.filter((a) => a._id !== action.payload);
+        task.attachmentCount = task.attachments.length;
+      }
+    });
   },
 });
 

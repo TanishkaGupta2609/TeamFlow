@@ -26,6 +26,10 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Uploads
+server/uploads/*
+!server/uploads/.gitkeep
+
 # Testing & Coverage
 coverage/
 .nyc_output/

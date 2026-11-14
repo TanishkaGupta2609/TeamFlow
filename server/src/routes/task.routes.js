@@ -11,9 +11,12 @@ import {
   deleteSubtask,
   createComment,
   getComments,
+  addTaskAttachments,
+  deleteTaskAttachment,
 } from '../controllers/task.controller.js';
 import { requireAuth, requireWorkspaceRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { uploadMultiple } from '../middleware/upload.middleware.js';
 import {
   createTaskSchema,
   updateTaskSchema,
@@ -60,5 +63,14 @@ router
   .route('/:taskId/comments')
   .post(requireWorkspaceRole('MEMBER'), validate(createCommentSchema), createComment)
   .get(requireWorkspaceRole('MEMBER'), getComments);
+
+// Attachments
+router
+  .route('/:taskId/attachments')
+  .post(requireWorkspaceRole('MEMBER'), uploadMultiple('files', 5), addTaskAttachments);
+
+router
+  .route('/:taskId/attachments/:attachmentId')
+  .delete(requireWorkspaceRole('MEMBER'), deleteTaskAttachment);
 
 export default router;

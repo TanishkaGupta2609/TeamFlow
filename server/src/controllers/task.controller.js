@@ -150,3 +150,34 @@ export const getComments = asyncHandler(async (req, res) => {
   const comments = await TaskService.getTaskComments(req.workspaceId, req.params.taskId);
   return sendSuccess(res, comments, 'Task comments retrieved');
 });
+
+/**
+ * @desc    Upload attachments to task
+ * @route   POST /api/workspaces/:workspaceId/tasks/:taskId/attachments
+ * @access  Protected (MEMBER)
+ */
+export const addTaskAttachments = asyncHandler(async (req, res) => {
+  const files = req.files || (req.file ? [req.file] : []);
+  const attachments = await TaskService.addAttachments(
+    req.workspaceId,
+    req.params.taskId,
+    req.user._id,
+    files
+  );
+  return sendSuccess(res, attachments, 'Attachments added successfully', 201);
+});
+
+/**
+ * @desc    Delete attachment from task
+ * @route   DELETE /api/workspaces/:workspaceId/tasks/:taskId/attachments/:attachmentId
+ * @access  Protected (MEMBER)
+ */
+export const deleteTaskAttachment = asyncHandler(async (req, res) => {
+  await TaskService.deleteAttachment(
+    req.workspaceId,
+    req.params.taskId,
+    req.params.attachmentId,
+    req.user._id
+  );
+  return sendSuccess(res, null, 'Attachment removed successfully');
+});

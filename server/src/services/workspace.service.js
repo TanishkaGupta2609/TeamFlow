@@ -1,6 +1,8 @@
 import crypto from 'crypto';
 import mongoose from 'mongoose';
 import { Workspace, Membership, User, Invitation } from '../models/index.js';
+import { EmailService } from './email.service.js';
+import { config } from '../config/env.js';
 
 export class WorkspaceService {
   /**
@@ -340,6 +342,17 @@ export class WorkspaceService {
       tokenHash,
       expiresAt,
       status: 'PENDING',
+    });
+
+    // Send invitation email asynchronously
+    User.findById(inviterId).then((inviter) => {
+      EmailService.sendWorkspaceInvitationEmail({
+        to: normalizedEmail,
+        inviterName: inviter?.name || 'A team manager',
+        workspaceName: workspace.name,
+        role,
+        inviteUrl: `${config.clientUrl}/accept-invitation?token=${token}`,
+      }).catch((err) => console.warn('[WorkspaceService] Failed to send invitation email:', err.message));
     });
 
     return {
