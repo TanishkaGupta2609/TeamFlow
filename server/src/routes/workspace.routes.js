@@ -28,6 +28,8 @@ import {
 } from '../validators/workspace.validator.js';
 import projectRoutes from './project.routes.js';
 import taskRoutes from './task.routes.js';
+import analyticsRoutes from './analytics.routes.js';
+import calendarRoutes from './calendar.routes.js';
 
 const router = Router();
 
@@ -115,5 +117,7 @@ router.delete(
 // ==========================================
 router.use('/:workspaceId/projects', projectRoutes);
 router.use('/:workspaceId/tasks', taskRoutes);
+router.use('/:workspaceId/analytics', analyticsRoutes);
+router.use('/:workspaceId/calendar', calendarRoutes);
 
 export default router;

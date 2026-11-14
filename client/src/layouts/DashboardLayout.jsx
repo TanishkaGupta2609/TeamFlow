@@ -34,6 +34,7 @@ import {
   mockWorkspaces, 
   mockNotifications 
 } from '../services/mockData';
+import { NotificationDropdown } from '../components/common/NotificationDropdown';
 import { 
   Avatar, 
   Button, 
@@ -158,12 +159,7 @@ export const DashboardLayout = () => {
             size="sm"
             onClick={() => setSearchModalOpen(true)}
           />
-          <IconButton
-            icon={<Bell className="w-4 h-4" />}
-            aria-label="Notifications"
-            size="sm"
-            onClick={() => toast.info('Notifications', 'All team activity is up to date.')}
-          />
+          <NotificationDropdown />
         </div>
       </div>
 
@@ -428,39 +424,8 @@ export const DashboardLayout = () => {
               </kbd>
             </button>
 
-            {/* Notifications Trigger */}
-            <DropdownMenu
-              align="right"
-              trigger={
-                <button
-                  type="button"
-                  className="relative p-2 rounded-lg text-charcoal-secondary hover:text-charcoal hover:bg-ivory transition-colors"
-                  aria-label="View notifications"
-                >
-                  <Bell className="w-4 h-4" />
-                  {unreadNotifs > 0 && (
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-status-danger ring-2 ring-white" />
-                  )}
-                </button>
-              }
-              items={[
-                ...mockNotifications.map((n) => ({
-                  label: `${n.title} – ${n.message.substring(0, 32)}...`,
-                  onClick: () => {
-                    setUnreadNotifs(Math.max(0, unreadNotifs - 1));
-                    toast.info('Notification Opened', n.title);
-                  },
-                })),
-                { type: 'divider' },
-                {
-                  label: 'Mark all as read',
-                  onClick: () => {
-                    setUnreadNotifs(0);
-                    toast.success('Done', 'All notifications marked as read.');
-                  },
-                },
-              ]}
-            />
+            {/* Notifications Dropdown */}
+            <NotificationDropdown />
           </div>
         </header>
 

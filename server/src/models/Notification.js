@@ -16,8 +16,25 @@ const notificationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['TASK_ASSIGNED', 'TASK_UPDATED', 'COMMENT_ADDED', 'DEADLINE_ALERT', 'INVITATION', 'SYSTEM'],
+      enum: [
+        'TASK_ASSIGNED',
+        'TASK_UPDATED',
+        'TASK_COMPLETED',
+        'COMMENT_ADDED',
+        'PROJECT_INVITATION',
+        'WORKSPACE_INVITATION',
+        'DEADLINE_APPROACHING',
+        'TASK_OVERDUE',
+        'MEMBER_JOINED',
+        'DEADLINE_ALERT',
+        'INVITATION',
+        'SYSTEM',
+      ],
       default: 'SYSTEM',
+    },
+    idempotencyKey: {
+      type: String,
+      index: { unique: true, sparse: true },
     },
     title: {
       type: String,

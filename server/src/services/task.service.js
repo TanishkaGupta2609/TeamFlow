@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { Task, Subtask, Comment, Project, Membership, ActivityLog } from '../models/index.js';
 import { ProjectService } from './project.service.js';
 import { broadcastToWorkspace } from '../socket/index.js';
+import { NotificationService } from './notification.service.js';
 
 export class TaskService {
   /**
@@ -70,6 +71,22 @@ export class TaskService {
 
     // Real-Time Broadcast
     broadcastToWorkspace(workspaceId, 'task:created', task);
+
+    // Notify assigned members
+    if (task.assignees && task.assignees.length > 0) {
+      for (const assigneeId of task.assignees) {
+        if (assigneeId.toString() !== actorUserId.toString()) {
+          NotificationService.createNotification({
+            recipient: assigneeId,
+            workspace: workspaceId,
+            type: 'TASK_ASSIGNED',
+            title: 'Task Assigned',
+            message: `You have been assigned to task "${task.title}".`,
+            relatedEntity: { entityType: 'TASK', entityId: task._id },
+          }).catch((e) => console.error('Failed to send assignment notification:', e.message));
+        }
+      }
+    }
 
     return task;
   }
@@ -209,6 +226,27 @@ export class TaskService {
 
     // Real-Time Broadcast
     broadcastToWorkspace(workspaceId, 'task:updated', task);
+
+    // Notify assignees if task was completed or updated
+    if (statusChanged && task.status === 'DONE') {
+      const recipientIds = new Set([
+        task.createdBy?.toString(),
+        ...(task.assignees?.map((a) => a.toString()) || []),
+      ]);
+      recipientIds.delete(actorUserId.toString());
+      for (const recipientId of recipientIds) {
+        if (recipientId) {
+          NotificationService.createNotification({
+            recipient: recipientId,
+            workspace: workspaceId,
+            type: 'TASK_COMPLETED',
+            title: 'Task Completed',
+            message: `Task "${task.title}" has been marked as DONE.`,
+            relatedEntity: { entityType: 'TASK', entityId: task._id },
+          }).catch((e) => console.error('Failed to send task completion notification:', e.message));
+        }
+      }
+    }
 
     return task;
   }
@@ -414,6 +452,25 @@ export class TaskService {
 
     // Real-Time Broadcast
     broadcastToWorkspace(workspaceId, 'comment:created', { taskId, comment: populated });
+
+    // Notify task assignees and creator
+    const commentRecipients = new Set([
+      task.createdBy?.toString(),
+      ...(task.assignees?.map((a) => a.toString()) || []),
+    ]);
+    commentRecipients.delete(actorUserId.toString());
+    for (const recipientId of commentRecipients) {
+      if (recipientId) {
+        NotificationService.createNotification({
+          recipient: recipientId,
+          workspace: workspaceId,
+          type: 'COMMENT_ADDED',
+          title: 'New Comment',
+          message: `${populated.author?.name || 'A teammate'} commented on "${task.title}".`,
+          relatedEntity: { entityType: 'TASK', entityId: task._id },
+        }).catch((e) => console.error('Failed to send comment notification:', e.message));
+      }
+    }
 
     return populated;
   }
