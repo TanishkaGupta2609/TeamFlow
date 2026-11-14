@@ -1,0 +1,1405 @@
+# TEAMFLOW – COMPLETE DEVELOPMENT PROMPT PACK
+## MERN Stack | Production-Style Project Management SaaS
+
+---
+
+# GLOBAL PROJECT INSTRUCTIONS
+
+You are acting as a senior full-stack software engineer, SaaS product architect, UI/UX designer and QA engineer.
+
+Build a complete, functional, responsive project management SaaS application named **TeamFlow**.
+
+This is a serious portfolio project intended to demonstrate professional full-stack development skills. Do not create a basic college CRUD application.
+
+## Product vision
+
+TeamFlow allows organizations to:
+- Create and manage workspaces.
+- Invite team members.
+- Organize projects.
+- Assign tasks and subtasks.
+- Track progress using Kanban boards.
+- Collaborate through comments and real-time updates.
+- Monitor deadlines.
+- Analyze team productivity.
+- Manage files and notifications.
+
+## Mandatory development rules
+
+1. Inspect the existing repository before creating or modifying files.
+2. Preserve existing working code unless there is a documented reason to change it.
+3. Use the specified technology stack throughout the application.
+4. Never create fake functionality or buttons that do nothing.
+5. Every form must have validation, loading, success and error states.
+6. All important data must persist in MongoDB.
+7. Never use hardcoded dashboard statistics when real database data is available.
+8. Never expose secrets, passwords or JWT tokens in frontend source code or logs.
+9. Implement proper backend authorization. Hiding buttons in React is not security.
+10. Use reusable components and maintain clean separation of concerns.
+11. Avoid unnecessarily complicated abstractions.
+12. Use realistic seed data only for development and demos.
+13. Do not silently ignore errors.
+14. Do not claim a feature is complete until it has been implemented and tested.
+15. Run the relevant tests after each major implementation.
+16. Keep dependencies compatible with the actual installed Node.js and package versions.
+17. Never overwrite .env files containing user secrets. Provide .env.example instead.
+18. Do not proceed past a stage with unresolved critical errors.
+
+## Fixed technology stack
+
+Frontend:
+- React.js
+- Vite
+- JavaScript ES6+
+- Tailwind CSS
+- React Router
+- Redux Toolkit
+- Axios
+- React Hook Form
+- Zod
+- Recharts
+- dnd-kit
+- Lucide React
+
+Backend:
+- Node.js
+- Express.js
+- MongoDB
+- Mongoose
+- JWT
+- bcrypt
+- Socket.IO
+- Cloudinary
+- Nodemailer
+- Swagger
+
+Testing:
+- Vitest
+- React Testing Library
+- Supertest
+
+Deployment:
+- Vercel for frontend
+- Render for backend
+- MongoDB Atlas for database
+
+## Mandatory visual identity
+
+Product name: TeamFlow
+
+Tagline: Plan clearly. Work together. Deliver better.
+
+Use this exact visual direction:
+
+Primary forest green: #173F35
+Secondary forest green: #285747
+Warm ivory background: #F7F6F2
+White surface: #FFFFFF
+Muted sage: #A9B8A5
+Amber accent: #D49A52
+Charcoal text: #242B27
+Secondary text: #747B73
+Border: #E9E7E0
+Success: #477A5B
+Warning: #D49A52
+Danger: #C66A5A
+
+Typography:
+- Manrope for headings.
+- Inter for body text.
+- Use a sensible system fallback.
+
+Design requirements:
+- Sophisticated, premium B2B SaaS appearance.
+- Clean editorial-style typography.
+- Balanced whitespace.
+- Consistent alignment and spacing.
+- Thin borders and subtle shadows.
+- Consistent button heights and form controls.
+- Restrained use of color.
+- High-quality empty states.
+- Professional data tables.
+- Consistent icon sizing using Lucide React.
+- Smooth but restrained transitions.
+
+Avoid:
+- Purple/pink gradients.
+- Excessive glassmorphism.
+- Random gradients.
+- Excessively rounded cards.
+- Emoji as application icons.
+- Oversized decorative illustrations.
+- Generic AI-generated dashboard layouts.
+- Unnecessary animations.
+- Inconsistent spacing and typography.
+
+Create a distinctive, cohesive product interface. Use real interaction patterns and clear information hierarchy rather than relying on decorative effects.
+
+All pages must be responsive on desktop, tablet and mobile.
+
+---
+
+# STAGE 00 – PROJECT INITIALIZATION AND ARCHITECTURE
+
+## Objective
+
+Create the initial project structure and establish the development environment.
+
+## Tasks
+
+1. Inspect the current directory.
+2. Identify existing files and dependencies.
+3. Initialize the project without destroying existing work.
+4. Create the frontend and backend applications.
+5. Configure package scripts.
+6. Configure environment variables.
+7. Establish the folder structure.
+8. Add basic health-check functionality.
+
+## Required structure
+
+TeamFlow/
+  client/
+    public/
+    src/
+      assets/
+      components/
+        common/
+        layout/
+        ui/
+      features/
+        auth/
+        dashboard/
+        workspace/
+        projects/
+        tasks/
+        notifications/
+        analytics/
+      hooks/
+      layouts/
+      pages/
+      routes/
+      services/
+      store/
+      utils/
+      App.jsx
+      main.jsx
+
+  server/
+    src/
+      config/
+      controllers/
+      middleware/
+      models/
+      routes/
+      services/
+      sockets/
+      validators/
+      utils/
+      app.js
+      server.js
+
+  docs/
+  .gitignore
+  README.md
+
+## Backend requirements
+
+- Create Express application.
+- Configure JSON parsing.
+- Configure CORS using an explicit frontend origin.
+- Add request logging.
+- Add centralized error handling.
+- Create MongoDB connection configuration.
+- Add GET /api/health endpoint.
+- Add environment variable validation.
+
+## Frontend requirements
+
+- Initialize React with Vite.
+- Configure Tailwind CSS.
+- Configure React Router.
+- Create the application entry point.
+- Create a reusable API client.
+- Create a basic application layout.
+
+## Environment configuration
+
+Create .env.example files containing placeholders for:
+
+Backend:
+PORT
+NODE_ENV
+MONGODB_URI
+CLIENT_URL
+JWT_ACCESS_SECRET
+JWT_REFRESH_SECRET
+CLOUDINARY_CLOUD_NAME
+CLOUDINARY_API_KEY
+CLOUDINARY_API_SECRET
+SMTP_HOST
+SMTP_PORT
+SMTP_USER
+SMTP_PASSWORD
+
+Frontend:
+VITE_API_URL
+VITE_SOCKET_URL
+
+Do not put real secrets into Git.
+
+## Completion criteria
+
+- Frontend starts successfully.
+- Backend starts successfully.
+- MongoDB connection works.
+- Health-check endpoint returns a successful response.
+- No startup errors.
+- README contains setup instructions.
+
+Stop and report the completed work before moving forward.
+
+---
+
+# STAGE 01 – DESIGN SYSTEM AND UI FOUNDATION
+
+## Objective
+
+Create a reusable, polished visual design system before building individual application screens.
+
+## Design direction
+
+The application should resemble a carefully designed professional productivity SaaS product.
+
+Use warm ivory backgrounds, forest green primary actions, charcoal text and muted sage secondary elements.
+
+Do not use a generic dashboard template.
+
+## Create reusable components
+
+Buttons:
+- Primary button
+- Secondary button
+- Outline button
+- Ghost button
+- Destructive button
+- Icon button
+
+Form components:
+- Text input
+- Password input
+- Textarea
+- Select
+- Date picker
+- Checkbox
+- Radio group
+- Search input
+- Form validation message
+
+Feedback components:
+- Toast notifications
+- Confirmation dialog
+- Modal
+- Tooltip
+- Dropdown menu
+- Loading spinner
+- Skeleton loader
+- Empty state
+- Error state
+
+Data components:
+- Status badge
+- Priority badge
+- Avatar
+- Avatar group
+- Progress bar
+- Pagination
+- Data table
+- Tabs
+
+## Design specifications
+
+Buttons:
+- Consistent height.
+- Clear hover and disabled states.
+- Visible focus indicators.
+- Smooth transitions.
+
+Cards:
+- White background.
+- Subtle borders.
+- Small, consistent corner radius.
+- Minimal shadows.
+
+Inputs:
+- Consistent height.
+- Clear labels.
+- Helpful validation messages.
+- Accessible focus states.
+
+Tables:
+- Clear column hierarchy.
+- Responsive behavior.
+- Row hover states.
+- Empty and loading states.
+
+## Create design tokens
+
+Centralize:
+- Color variables.
+- Font sizes.
+- Spacing.
+- Border radius.
+- Shadows.
+- Breakpoints.
+- Transitions.
+
+## Completion criteria
+
+Create a design-system showcase page demonstrating every component and its interactive states.
+
+Do not proceed until the visual system is consistent.
+
+---
+
+# STAGE 02 – FRONTEND APPLICATION AND MAIN SCREENS
+
+## Objective
+
+Build the entire frontend interface with realistic layouts and reusable components.
+
+Initially use development mock data only where backend APIs are not yet implemented. Keep mock data separate and clearly identified.
+
+## A. Application layout
+
+Create a professional SaaS dashboard layout.
+
+Desktop:
+- Fixed left sidebar.
+- Main content area.
+- Top navigation bar.
+- Workspace selector.
+- Search functionality.
+- Notification icon.
+- User profile dropdown.
+
+Sidebar navigation:
+
+WORKSPACE
+- Overview
+- Projects
+- My Tasks
+- Calendar
+- Team
+- Reports
+
+WORKSPACE MANAGEMENT
+- Members
+- Settings
+
+Additional sidebar elements:
+- Workspace logo.
+- Workspace name.
+- Create project button.
+- Collapse sidebar control.
+- User account section.
+
+Mobile:
+- Responsive navigation drawer.
+- Mobile header.
+- Accessible navigation controls.
+
+## B. Authentication screens
+
+Create:
+- Login.
+- Registration.
+- Forgot password.
+- Reset password.
+- Invitation acceptance.
+
+Use a split-screen authentication layout with a clean form and subtle product branding.
+
+## C. Dashboard
+
+Create:
+- Welcome message.
+- Current workspace selector.
+- Total projects metric.
+- Completed tasks metric.
+- Pending tasks metric.
+- Overdue tasks metric.
+- Recent projects.
+- My assigned tasks.
+- Upcoming deadlines.
+- Activity feed.
+- Task completion chart.
+
+## D. Projects page
+
+Include:
+- Grid view.
+- List view.
+- Project cards.
+- Project status.
+- Project progress.
+- Deadline.
+- Project manager.
+- Member avatars.
+- Search and filtering.
+- Create project modal.
+
+## E. My Tasks page
+
+Include:
+- All tasks.
+- Assigned to me.
+- Created by me.
+- Overdue tasks.
+- Completed tasks.
+- Filter and sorting controls.
+
+## F. Kanban page
+
+Create columns:
+- Backlog.
+- To Do.
+- In Progress.
+- In Review.
+- Done.
+
+Create task cards displaying:
+- Title.
+- Priority.
+- Assignee.
+- Due date.
+- Comment count.
+- Attachment count.
+
+## G. Team page
+
+Include:
+- Member table.
+- Profile pictures.
+- Name.
+- Email.
+- Role.
+- Joined date.
+- Assigned projects.
+- Member status.
+- Invite button.
+
+## H. Calendar page
+
+Include:
+- Monthly calendar.
+- Weekly calendar.
+- Task deadlines.
+- Project deadlines.
+- Event details.
+
+## I. Reports page
+
+Include:
+- Completion overview.
+- Task distribution.
+- Team performance.
+- Project progress.
+- Overdue tasks.
+
+## J. Settings
+
+Create:
+- Profile settings.
+- Workspace settings.
+- Notification preferences.
+- Theme preferences.
+- Security settings.
+
+## Frontend quality requirements
+
+- Reusable layouts.
+- No duplicated page structures.
+- Consistent breadcrumbs.
+- Consistent loading states.
+- Proper empty states.
+- Accessible dialogs.
+- Responsive tables.
+- No broken navigation.
+- No placeholder buttons without an implemented action.
+
+## Completion criteria
+
+Every main screen must render correctly, navigation must work, and layouts must be responsive.
+
+---
+
+# STAGE 03 – BACKEND ARCHITECTURE AND DATABASE DESIGN
+
+## Objective
+
+Implement a clean and scalable Express backend with MongoDB.
+
+## Backend architecture
+
+Follow this request flow:
+
+Routes → Authentication/Authorization Middleware → Validation → Controller → Service → Mongoose Model → Database.
+
+Keep business logic out of route files.
+
+Use centralized error handling.
+
+## Database models
+
+Implement the following Mongoose models.
+
+### 1. User
+
+Fields:
+- name
+- email
+- passwordHash
+- avatar
+- designation
+- isActive
+- emailVerified
+- lastLoginAt
+- createdAt
+- updatedAt
+
+Email must be unique and normalized.
+
+Never return passwordHash in API responses.
+
+### 2. Workspace
+
+Fields:
+- name
+- slug
+- description
+- logo
+- owner
+- settings
+- createdAt
+- updatedAt
+
+Workspace slug must be unique.
+
+### 3. Membership
+
+Fields:
+- workspace
+- user
+- role
+- status
+- joinedAt
+
+Roles:
+- ADMIN
+- MANAGER
+- MEMBER
+
+Enforce a unique workspace/user pair.
+
+### 4. Invitation
+
+Fields:
+- workspace
+- email
+- invitedBy
+- role
+- tokenHash
+- expiresAt
+- acceptedAt
+- status
+
+Use hashed invitation tokens and expiration.
+
+### 5. Project
+
+Fields:
+- workspace
+- name
+- description
+- color
+- startDate
+- dueDate
+- status
+- priority
+- owner
+- members
+- createdAt
+- updatedAt
+
+### 6. Task
+
+Fields:
+- workspace
+- project
+- title
+- description
+- status
+- priority
+- assignees
+- createdBy
+- dueDate
+- position
+- labels
+- attachments
+- createdAt
+- updatedAt
+
+### 7. Subtask
+
+Fields:
+- task
+- title
+- completed
+- assignedTo
+- position
+
+### 8. Comment
+
+Fields:
+- workspace
+- task
+- author
+- content
+- attachments
+- createdAt
+- updatedAt
+
+### 9. Notification
+
+Fields:
+- recipient
+- workspace
+- type
+- title
+- message
+- relatedEntity
+- isRead
+- createdAt
+
+### 10. ActivityLog
+
+Fields:
+- workspace
+- actor
+- action
+- entityType
+- entityId
+- metadata
+- createdAt
+
+### 11. RefreshSession
+
+Fields:
+- user
+- tokenHash
+- expiresAt
+- revokedAt
+- createdAt
+
+Use appropriate references, indexes, timestamps and validation.
+
+## API response format
+
+Use a consistent structure.
+
+Success:
+
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {}
+}
+
+Error:
+
+{
+  "success": false,
+  "message": "Meaningful error message",
+  "errors": []
+}
+
+## Backend requirements
+
+- Async error handling.
+- Request validation.
+- Centralized exception handling.
+- Database indexes.
+- Pagination.
+- Sorting.
+- Filtering.
+- Consistent HTTP status codes.
+- Secure CORS configuration.
+- Request rate limiting.
+- Safe handling of database errors.
+
+## Completion criteria
+
+All models must compile and database operations must work.
+
+Create basic model tests and verify the database connection.
+
+---
+
+# STAGE 04 – AUTHENTICATION AND AUTHORIZATION
+
+## Objective
+
+Implement secure registration, login, session management and role-based permissions.
+
+## Authentication features
+
+1. Registration.
+2. Login.
+3. Logout.
+4. Refresh access token.
+5. Forgot password.
+6. Reset password.
+7. Get current user.
+8. Update profile.
+9. Change password.
+10. Account deactivation.
+
+## Security implementation
+
+- Hash passwords with bcrypt.
+- Use short-lived JWT access tokens.
+- Use rotating refresh tokens.
+- Store refresh sessions securely.
+- Set refresh cookies as HttpOnly.
+- Use Secure cookies in production.
+- Set appropriate SameSite policy.
+- Protect against CSRF where required by the cookie configuration.
+- Never store long-lived refresh tokens in localStorage.
+- Revoke refresh sessions during logout.
+- Invalidate compromised sessions.
+- Add login rate limiting.
+- Validate email and password inputs.
+
+Use Redux Toolkit for user/session state.
+
+Create protected frontend routes.
+
+## RBAC
+
+ADMIN:
+- Manage workspace settings.
+- Invite and remove members.
+- Assign roles.
+- Manage all workspace projects.
+- View workspace reports.
+
+MANAGER:
+- Create and manage projects.
+- Assign tasks.
+- Manage project members.
+- View project analytics.
+- Manage task workflows.
+
+MEMBER:
+- View authorized projects.
+- Update assigned tasks.
+- Comment on tasks.
+- Upload permitted attachments.
+- Receive notifications.
+
+Important:
+Enforce these permissions on the backend for every protected operation.
+
+A user must never access another workspace's resources simply by changing an ID in the request.
+
+## Completion criteria
+
+Test registration, login, refresh, logout, password reset and role permissions.
+
+Verify unauthorized requests are rejected.
+
+---
+
+# STAGE 05 – WORKSPACE AND TEAM MANAGEMENT
+
+## Objective
+
+Implement multi-workspace organization management.
+
+## Features
+
+1. Create workspace.
+2. Edit workspace details.
+3. Upload workspace logo.
+4. View available workspaces.
+5. Switch between workspaces.
+6. Invite members by email.
+7. Accept invitation.
+8. Reject invitation.
+9. Resend invitation.
+10. Revoke invitation.
+11. Remove members.
+12. Update member roles.
+13. View member details.
+14. Deactivate membership.
+
+## Invitation workflow
+
+Manager enters email and selects a role.
+
+Backend:
+- Validates permission.
+- Creates invitation.
+- Generates secure random token.
+- Stores token hash.
+- Sets expiration.
+- Sends invitation email.
+
+Invitee:
+- Opens invitation link.
+- Registers or logs in.
+- Accepts invitation.
+- Becomes a workspace member.
+
+Handle:
+- Expired invitations.
+- Already existing members.
+- Duplicate invitations.
+- Invalid invitation tokens.
+- Revoked invitations.
+
+## Multi-tenancy rules
+
+Every workspace-owned resource must be scoped to the active workspace.
+
+Do not rely on frontend workspace IDs for authorization.
+
+Always validate the user's membership before accessing a workspace.
+
+## Completion criteria
+
+Test creating multiple workspaces and switching between them.
+
+Verify that users cannot access resources from workspaces where they are not members.
+
+---
+
+# STAGE 06 – PROJECT AND TASK MANAGEMENT
+
+## Objective
+
+Implement the central business functionality of TeamFlow.
+
+## Project features
+
+- Create projects.
+- Edit projects.
+- Archive projects.
+- Delete projects with proper authorization.
+- Assign project manager.
+- Add project members.
+- Change project priority.
+- Set start and due dates.
+- Change project status.
+- View project details.
+- Track project completion.
+
+Project status:
+- PLANNING
+- ACTIVE
+- ON_HOLD
+- COMPLETED
+- ARCHIVED
+
+Project priority:
+- LOW
+- MEDIUM
+- HIGH
+- CRITICAL
+
+## Task features
+
+- Create task.
+- Edit task.
+- Delete task.
+- Assign multiple users.
+- Set due date.
+- Set priority.
+- Add labels.
+- Add descriptions.
+- Create subtasks.
+- Complete subtasks.
+- Add attachments.
+- Add comments.
+- Change status.
+- Track task history.
+
+Task statuses:
+- BACKLOG
+- TODO
+- IN_PROGRESS
+- IN_REVIEW
+- DONE
+
+Task priorities:
+- LOW
+- MEDIUM
+- HIGH
+- CRITICAL
+
+## Important business logic
+
+- Only authorized users can create or update tasks.
+- Assigned users must belong to the relevant workspace.
+- Tasks must belong to valid projects.
+- A task must not be accessible outside its workspace.
+- Validate deadlines.
+- Preserve task history.
+- Record important changes in ActivityLog.
+- Update project completion based on eligible completed tasks.
+- Avoid counting archived or deleted tasks incorrectly.
+
+## Frontend requirements
+
+Create:
+- Create project dialog.
+- Edit project dialog.
+- Project details page.
+- Create task dialog.
+- Edit task dialog.
+- Task details panel.
+- Subtask checklist.
+- Assignee selector.
+- Priority selector.
+- Date picker.
+
+Every action must call the real backend API.
+
+## Completion criteria
+
+Test complete CRUD workflows and all permission restrictions.
+
+---
+
+# STAGE 07 – KANBAN BOARD AND REAL-TIME COLLABORATION
+
+## Objective
+
+Make TeamFlow a collaborative application instead of a simple task tracker.
+
+## Kanban functionality
+
+Use dnd-kit.
+
+Implement:
+- Five status columns.
+- Drag-and-drop task cards.
+- Reordering within a column.
+- Moving tasks between columns.
+- Optimistic UI updates.
+- Rollback when API requests fail.
+- Task filters.
+- Search.
+- Assignee filtering.
+- Priority filtering.
+
+Persist card positions in MongoDB.
+
+Use a stable position strategy rather than relying only on array indexes.
+
+Handle concurrent task movement safely. Use version checks or an appropriate conflict-resolution strategy.
+
+## Task details panel
+
+Display:
+- Task title.
+- Description.
+- Status.
+- Priority.
+- Assignees.
+- Due date.
+- Subtasks.
+- Comments.
+- Attachments.
+- Activity history.
+
+## Socket.IO integration
+
+Implement authenticated Socket.IO connections.
+
+Use workspace-specific and authorized project rooms.
+
+Events:
+
+task:created
+task:updated
+task:deleted
+task:moved
+comment:created
+notification:new
+member:online
+member:offline
+
+## Real-time functionality
+
+- Update Kanban cards without refreshing.
+- Display new comments immediately.
+- Update unread notification count.
+- Show online members.
+- Notify users about task assignments.
+- Broadcast relevant task changes.
+
+## Security
+
+- Authenticate socket connections.
+- Verify workspace membership before joining rooms.
+- Do not trust client-provided user IDs.
+- Validate event payloads.
+- Prevent cross-workspace data leakage.
+
+## Completion criteria
+
+Open two authenticated browser sessions and verify that authorized updates appear in real time.
+
+---
+
+# STAGE 08 – NOTIFICATIONS, CALENDAR AND ANALYTICS
+
+## Objective
+
+Build the features that make TeamFlow useful for everyday business operations.
+
+## A. Notifications
+
+Notification types:
+- TASK_ASSIGNED
+- TASK_UPDATED
+- TASK_COMPLETED
+- COMMENT_ADDED
+- PROJECT_INVITATION
+- WORKSPACE_INVITATION
+- DEADLINE_APPROACHING
+- TASK_OVERDUE
+- MEMBER_JOINED
+
+Features:
+- Notification dropdown.
+- Notification center.
+- Unread count.
+- Mark as read.
+- Mark all as read.
+- Notification history.
+- Real-time delivery.
+
+Avoid duplicate notifications when processing retries.
+
+## B. Deadline reminders
+
+Implement scheduled background processing.
+
+- Upcoming task reminders.
+- Overdue task alerts.
+- Project deadline reminders.
+- Configurable reminder preferences.
+
+Use an appropriate scheduler such as node-cron.
+
+Ensure the scheduler does not send duplicate reminders across multiple backend instances. Use a durable job or idempotency strategy.
+
+## C. Calendar
+
+Create:
+- Monthly view.
+- Weekly view.
+- Daily view.
+- Task deadline display.
+- Project deadline display.
+- Calendar filters.
+- Task detail popup.
+- Click-to-open task details.
+
+Handle date and timezone consistently.
+
+## D. Analytics dashboard
+
+Use Recharts.
+
+Create:
+- Project completion chart.
+- Task status distribution.
+- Priority distribution.
+- Weekly task completion.
+- Overdue task count.
+- Team workload chart.
+- Individual productivity report.
+
+All analytics must be calculated using actual database records.
+
+Apply workspace and project access restrictions to every analytics endpoint.
+
+## Completion criteria
+
+Verify charts against known database records and test calendar date boundaries.
+
+---
+
+# STAGE 09 – FILE UPLOADS AND EMAIL INTEGRATION
+
+## Objective
+
+Add practical collaboration and communication functionality.
+
+## File uploads
+
+Use Cloudinary.
+
+Implement:
+- Profile image uploads.
+- Workspace logo uploads.
+- Task attachments.
+- Comment attachments.
+
+Requirements:
+- File type validation.
+- File size limits.
+- Secure upload handling.
+- Authorized deletion.
+- Cloudinary resource cleanup.
+- Safe filenames and metadata.
+
+Do not trust client-provided MIME types alone.
+
+## Email functionality
+
+Use Nodemailer.
+
+Create professional email templates for:
+- Welcome email.
+- Workspace invitation.
+- Password reset.
+- Task assignment.
+- Upcoming deadline.
+- Project invitation.
+
+Email design must follow TeamFlow's visual identity.
+
+Do not block core application requests while sending non-critical email notifications. Use asynchronous processing where appropriate.
+
+## Completion criteria
+
+Test file uploads, deletion and email workflows.
+
+Verify missing or invalid credentials fail gracefully.
+
+---
+
+# STAGE 10 – TESTING, VALIDATION AND SECURITY
+
+## Objective
+
+Make the application stable, secure and ready for demonstration.
+
+## Backend testing
+
+Use Vitest and Supertest.
+
+Test:
+- Registration.
+- Login.
+- Refresh sessions.
+- Logout.
+- Workspace creation.
+- Workspace membership.
+- Invitation acceptance.
+- Project CRUD.
+- Task CRUD.
+- Task assignment.
+- Permission enforcement.
+- Cross-workspace access prevention.
+- Comment creation.
+- Notification creation.
+
+## Frontend testing
+
+Use React Testing Library.
+
+Test:
+- Login form validation.
+- Registration form validation.
+- Protected routes.
+- Project creation.
+- Task creation.
+- Task filtering.
+- Kanban interactions.
+- Loading states.
+- Error states.
+
+## Security checks
+
+- Password hashing.
+- JWT validation.
+- Refresh token rotation.
+- RBAC enforcement.
+- Workspace isolation.
+- Input validation.
+- Rate limiting.
+- Secure CORS.
+- File upload validation.
+- Safe error responses.
+- Secret management.
+- Dependency vulnerability review.
+
+## Quality checks
+
+- Remove unused code.
+- Remove unnecessary dependencies.
+- Fix console errors.
+- Fix broken links.
+- Check responsive behavior.
+- Check accessibility.
+- Check database indexes.
+- Verify pagination.
+- Verify error handling.
+
+Do not claim the application is production-ready solely because it runs locally.
+
+## Completion criteria
+
+All critical automated tests must pass.
+
+Document any known limitations honestly.
+
+---
+
+# STAGE 11 – DEPLOYMENT, DOCUMENTATION AND GITHUB
+
+## Objective
+
+Prepare TeamFlow for a professional portfolio demonstration.
+
+## Deployment
+
+Frontend:
+- Deploy on Vercel.
+- Configure production API URL.
+- Configure production socket URL.
+
+Backend:
+- Deploy on Render.
+- Configure environment variables.
+- Configure production CORS.
+- Configure MongoDB Atlas connection.
+
+Database:
+- Create MongoDB Atlas database.
+- Configure indexes.
+- Configure database access securely.
+- Use separate development and production environments.
+
+## Production checks
+
+- Test registration and login.
+- Test workspace creation.
+- Test project creation.
+- Test task assignment.
+- Test real-time notifications.
+- Test file uploads.
+- Test permissions.
+- Test mobile layouts.
+- Test application refresh and routing.
+- Test production error handling.
+
+## GitHub README
+
+Create a professional README with:
+
+1. Project title.
+2. Project overview.
+3. Problem statement.
+4. Main features.
+5. Technology stack.
+6. Architecture diagram.
+7. Application screenshots.
+8. Folder structure.
+9. Database schema overview.
+10. API documentation.
+11. Installation instructions.
+12. Environment variables.
+13. Local development instructions.
+14. Testing instructions.
+15. Deployment instructions.
+16. Future improvements.
+17. License.
+
+## GitHub repository quality
+
+- Clear commit history.
+- Meaningful commit messages.
+- No secrets.
+- No node_modules.
+- Proper .gitignore.
+- .env.example.
+- Consistent formatting.
+- No unnecessary generated files.
+
+## Final deliverables
+
+Produce:
+- Complete frontend.
+- Complete backend.
+- MongoDB integration.
+- Working authentication.
+- Multi-workspace architecture.
+- Project and task management.
+- Kanban board.
+- Real-time collaboration.
+- Notifications.
+- Analytics.
+- Calendar.
+- File uploads.
+- Automated tests.
+- Swagger documentation.
+- Deployment configuration.
+- Complete README.
+
+At the end, provide:
+1. Completed features.
+2. Features not completed.
+3. Test results.
+4. Known bugs or limitations.
+5. Environment configuration required.
+6. Local startup instructions.
+7. Production deployment instructions.
+
+Never claim a feature is working unless it has been verified.
+
+---
+
+# FINAL ACCEPTANCE CRITERIA
+
+TeamFlow is considered complete only when:
+
+- A user can register and log in.
+- A user can create multiple workspaces.
+- Workspace administrators can invite team members.
+- Managers can create projects.
+- Authorized members can create and update tasks.
+- Tasks can be moved using drag and drop.
+- Unauthorized users cannot access protected resources.
+- Users can collaborate through comments.
+- Relevant task updates appear in real time.
+- Notifications are persisted.
+- Analytics use actual database records.
+- Calendar displays real deadlines.
+- File uploads work.
+- Backend tests pass.
+- Frontend tests pass.
+- Application works on mobile and desktop.
+- Application is deployed and documented.
+
+**Development instruction:** Implement one stage at a time. After each stage, summarize changed files, implemented functionality, tests performed and remaining issues. Wait for explicit approval before starting the next stage.
+
+The priority is correctness, maintainability, security and a cohesive user experience—not rushing to generate a large quantity of code.
+
+END OF DEVELOPMENT PROMPT PACK.

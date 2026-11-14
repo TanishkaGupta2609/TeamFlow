@@ -1,0 +1,20 @@
+Before proceeding to the next development stage, perform a thorough review of the current implementation.
+
+1. Inspect all newly created and modified files.
+2. Check for duplicate components, unnecessary dependencies and poor code organization.
+3. Run the frontend and backend.
+4. Run all relevant automated tests.
+5. Check browser console errors and backend terminal errors.
+6. Verify API integration and MongoDB persistence.
+7. Check responsive behavior on desktop, tablet and mobile.
+8. Identify incomplete functionality and security problems.
+9. Fix all critical issues before declaring the stage complete.
+
+Provide a concise development report containing:
+- Files created or modified.
+- Features implemented.
+- Tests executed and their results.
+- Known bugs or incomplete features.
+- Commands required to run the application.
+
+Do not begin the next stage until I approve it.

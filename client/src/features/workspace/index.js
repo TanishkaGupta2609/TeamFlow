@@ -1,0 +1,2 @@
+// Workspace feature entry
+export {};
