@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Layers, Activity, CheckCircle2, AlertCircle, Palette } from 'lucide-react';
+import { Layers, Activity, CheckCircle2, AlertCircle, Palette, ArrowRight } from 'lucide-react';
 import api from '../../services/api';
+import { Button } from '../ui/Button';
 
 export const Navbar = () => {
   const location = useLocation();
@@ -39,6 +40,9 @@ export const Navbar = () => {
 
   const navLinks = [
     { name: 'Overview', path: '/' },
+    { name: 'App Dashboard', path: '/dashboard' },
+    { name: 'Projects', path: '/projects' },
+    { name: 'Kanban', path: '/kanban' },
     { name: 'Design System', path: '/design-system' },
     { name: 'System Status', path: '/status' },
   ];
@@ -66,16 +70,16 @@ export const Navbar = () => {
           </div>
 
           {/* Navigation Links */}
-          <nav className="flex items-center gap-1 sm:gap-4">
+          <nav className="hidden lg:flex items-center gap-1 sm:gap-2">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
               return (
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
                     isActive
-                      ? 'bg-forest/10 text-forest font-semibold'
+                      ? 'bg-forest/10 text-forest font-bold'
                       : 'text-charcoal-secondary hover:text-charcoal hover:bg-ivory'
                   }`}
                 >
@@ -85,10 +89,10 @@ export const Navbar = () => {
             })}
           </nav>
 
-          {/* Backend Status Badge */}
-          <div className="flex items-center gap-2">
+          {/* Right Action buttons */}
+          <div className="flex items-center gap-2.5">
             <div
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${
+              className={`hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${
                 health.status === 'online'
                   ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                   : health.status === 'checking'
@@ -105,11 +109,22 @@ export const Navbar = () => {
                     : 'bg-rose-500'
                 }`}
               />
-              <span className="hidden md:inline">{health.message}</span>
-              <span className="md:hidden">
-                {health.status === 'online' ? 'Online' : 'Offline'}
+              <span className="hidden xl:inline">{health.message}</span>
+              <span className="xl:hidden">
+                {health.status === 'online' ? 'API Online' : 'API Offline'}
               </span>
             </div>
+
+            <Link to="/login">
+              <Button variant="outline" size="sm">
+                Sign In
+              </Button>
+            </Link>
+            <Link to="/dashboard">
+              <Button variant="primary" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
+                Go to App
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
