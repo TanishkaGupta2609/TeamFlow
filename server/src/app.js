@@ -16,6 +16,7 @@ import notificationRoutes from './routes/notification.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 import { rateLimiter } from './middleware/rateLimiter.js';
+import { sanitizeNoSql } from './middleware/sanitize.middleware.js';
 
 // Validate environment
 validateEnv();
@@ -23,7 +24,7 @@ validateEnv();
 const app = express();
 
 // Security Headers
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
 // Rate Limiting (100 requests per 15 mins)
 app.use(rateLimiter(15 * 60 * 1000, 100));
@@ -57,6 +58,7 @@ app.use(
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
+app.use(sanitizeNoSql);
 
 // Request Logging
 if (config.nodeEnv !== 'test') {

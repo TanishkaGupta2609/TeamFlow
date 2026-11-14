@@ -22,10 +22,10 @@ class MemoryRateLimiter {
     }
   }
 
-  middleware() {
+  middleware({ skipTestCheck = false } = {}) {
     return (req, res, next) => {
-      // Bypass rate limiting in test environment
-      if (process.env.NODE_ENV === 'test') {
+      // Bypass rate limiting in test environment unless explicitly testing rate limiter
+      if (process.env.NODE_ENV === 'test' && !skipTestCheck) {
         return next();
       }
 
@@ -65,7 +65,8 @@ class MemoryRateLimiter {
   }
 }
 
-export const rateLimiter = (windowMs, maxRequests) =>
-  new MemoryRateLimiter(windowMs, maxRequests).middleware();
+export const rateLimiter = (windowMs, maxRequests, options = {}) =>
+  new MemoryRateLimiter(windowMs, maxRequests).middleware(options);
 
+export { MemoryRateLimiter };
 export default rateLimiter;

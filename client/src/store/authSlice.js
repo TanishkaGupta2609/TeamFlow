@@ -74,7 +74,10 @@ export const uploadAvatar = createAsyncThunk(
   }
 );
 
-const initialToken = localStorage.getItem('teamflow_token') || null;
+const initialToken =
+  typeof window !== 'undefined' && typeof localStorage !== 'undefined'
+    ? localStorage.getItem('teamflow_token')
+    : null;
 
 const authSlice = createSlice({
   name: 'auth',
